@@ -53,9 +53,12 @@ try {
 }
 
 if (typeof mod.apply !== "function") fail(`${file} does not export apply()`);
+if (!Array.isArray(mod.inject) || mod.inject.length !== 0) {
+	fail("loader root must not hard-inject agent-scoped services");
+}
 
-// The plugin only ever reaches for these three; anything else it needs will throw
-// loudly, which is the behaviour we want from a load test.
+// The plugin only ever reaches for this small ctx surface; anything else it needs will
+// throw loudly, which is the behaviour we want from a load test.
 const registered = [];
 const injected = [];
 const ctx = {
