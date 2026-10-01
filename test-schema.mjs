@@ -10,6 +10,10 @@ const ctx = {
 	tools: { register: (t) => { registeredTool = t; } },
 	on: () => {},
 	get: () => undefined,
+	inject: (_deps, callback) => {
+		callback(ctx);
+		return { dispose: async () => {} };
+	},
 };
 
 await mod.apply(ctx);

@@ -53,14 +53,23 @@ try {
 }
 
 if (typeof mod.apply !== "function") fail(`${file} does not export apply()`);
+if (!Array.isArray(mod.inject) || mod.inject.length !== 0) {
+	fail("loader root must not hard-inject agent-scoped services");
+}
 
-// The plugin only ever reaches for these three; anything else it needs will throw
-// loudly, which is the behaviour we want from a load test.
+// The plugin only ever reaches for this small ctx surface; anything else it needs will
+// throw loudly, which is the behaviour we want from a load test.
 const registered = [];
+const injected = [];
 const ctx = {
 	tools: { register: (tool) => registered.push(tool) },
 	on: () => {},
 	get: () => undefined,
+	inject: (deps, callback) => {
+		injected.push(deps);
+		callback(ctx);
+		return { dispose: async () => {} };
+	},
 };
 
 try {
@@ -70,6 +79,9 @@ try {
 }
 
 if (registered.length === 0) fail("apply() registered no tools");
+if (injected.length !== 1 || injected[0]?.join(",") !== "tools,sessionTitle") {
+	fail("apply() did not isolate tools/sessionTitle behind one dynamic inject");
+}
 
 const problems = [];
 const seen = new Set();
