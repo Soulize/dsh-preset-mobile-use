@@ -1,0 +1,22 @@
+name: Verify lifecycle fix
+
+on:
+  push:
+    branches:
+      - fix/global-mobile-plugin-lifecycle
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify preset mount and schema
+        run: |
+          node check-preset.mjs
+          node test-schema.mjs
+          cmp -s lib/index.js preset/mobile-use/mobile_plugin.js
+          grep -q "id: tool-mobile-use-global" cordis.patch.yml
+          grep -q "name: 'dsh-preset-mobile-use'" cordis.patch.yml
